@@ -1,11 +1,19 @@
 import telebot
-import logik
+from python import logik
 from telebot import types
 
 bot = telebot.TeleBot('6528762019:AAEU0EnqfX9z_ez7Eu9UjSn7gal-h8ea35w')
 
 
-@bot.message_handler(commands=['калькулятор'])
+async def set_default_commands(dp):
+    await dp.bot.set_my_commands([
+        types.BotCommand("start", "Приветствие"),
+        types.BotCommand("help", "Информация"),
+        types.BotCommand("calculator", "Калькулятор"),
+    ])
+
+
+@bot.message_handler(commands=['calculator'])
 def calc(message):
     numan = bot.send_message(message.chat.id, 'Первое число')
     bot.register_next_step_handler(numan, num1_fun)
@@ -35,31 +43,37 @@ def num2_fun(message):
     bot.register_next_step_handler(operu, operi)
 
 
-
 def operi(message):
     global oper;
     oper = message.text
     bot.send_message(message.chat.id, 'Результат:', reply_markup=types.ReplyKeyboardRemove())
     if oper == "Сложение (+)" or oper == '+':
         res = logik.summ(num1, num2)
-        bot.send_message(message.chat.id,  res)
+        bot.send_message(message.chat.id, res)
     elif oper == "Вычитание (-)" or oper == '-':
         res = logik.subtraction(num1, num2)
-        bot.send_message(message.chat.id,  res)
+        bot.send_message(message.chat.id, res)
     elif oper == "Умножение (*)" or oper == '*':
         res = logik.multiply(num1, num2)
-        bot.send_message(message.chat.id,  res)
+        bot.send_message(message.chat.id, res)
     elif oper == "Деление (/)" or oper == '/':
-        res = logik.delete(num1, num2)
-        bot.send_message(message.chat.id,  res)
-
+        try:
+            res = logik.delete(num1, num2)
+            bot.send_message(message.chat.id, res)
+        except ZeroDivisionError:
+            bot.send_message(message.chat.id, "Деление на ноль невозможно")
     else:
         bot.send_message(message.chat.id, "Ошибка")
 
 
 @bot.message_handler(commands=['start'])
 def main(message):
-    bot.send_message(message.chat.id, 'Приветик')
+    bot.send_message(message.chat.id, 'Приветик' + message.from_user.first_name)
+
+
+@bot.message_handler(commands=['help'])
+def main(message):
+    bot.send_message(message.chat.id, 'Сейчас я очень мал всё что мне подвластны основные операции напиши /calculator и следуй инструкциям')
 
 
 # не поднимать
